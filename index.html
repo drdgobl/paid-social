@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paid Social at Creative Energy</title>
+<style>
+  :root{
+    --blue:#1f5fd6;--red:#e23b3b;--green:#1f9e5a;--yellow:#f3b71e;
+    --dark:#16181d;--ink:#2a2d34;--muted:#6b6f78;--line:#e4e6ea;--light:#f6f5f1;--paper:#fff;
+    --li:#0a66c2;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--light);line-height:1.5;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:920px;margin:0 auto;padding:30px 22px 70px;}
+  a{color:inherit;text-decoration:none;}
+
+  /* hero */
+  .hero{background:var(--dark);color:#fff;border-radius:16px;padding:38px 34px;}
+  .kicker{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--yellow);}
+  .hero h1{font-family:Georgia,serif;font-size:38px;line-height:1.08;margin:12px 0 14px;font-weight:700;}
+  .hero p.lead{font-size:16px;color:#d4d7df;max-width:680px;margin:0 0 22px;}
+  .cta-row{display:flex;flex-wrap:wrap;gap:12px;}
+  .btn{display:inline-block;font-weight:700;font-size:14.5px;border-radius:999px;padding:12px 22px;cursor:pointer;transition:transform .06s ease;}
+  .btn:active{transform:translateY(1px);}
+  .btn-red{background:var(--red);color:#fff;}
+  .btn-ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.35);}
+
+  /* POV three */
+  .pov{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px;}
+  .pov .c{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px 18px;}
+  .pov .n{font-family:Georgia,serif;font-weight:700;color:var(--blue);font-size:15px;margin-bottom:4px;}
+  .pov .d{font-size:13.5px;color:var(--ink);}
+
+  /* section heading */
+  .shead{font-family:Georgia,serif;font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:34px 0 14px;}
+
+  /* platform cards */
+  .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+  .pcard{background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;transition:box-shadow .12s ease,transform .12s ease;border-top:4px solid var(--ac,#1f5fd6);}
+  .pcard:hover{box-shadow:0 6px 20px rgba(0,0,0,.08);transform:translateY(-2px);}
+  .pcard .inner{padding:18px 20px;}
+  .pcard .pname{font-family:Georgia,serif;font-size:22px;font-weight:700;color:var(--dark);}
+  .pcard .pone{font-size:14px;color:var(--ink);margin:5px 0 14px;}
+  .pcard .open{font-size:13px;font-weight:700;color:var(--ac,#1f5fd6);}
+
+  /* estimator block */
+  .est{margin-top:16px;background:linear-gradient(180deg,#fbfbf9,#f4f4f0);border:1px solid var(--line);border-radius:14px;padding:26px 28px;display:flex;gap:22px;align-items:center;flex-wrap:wrap;}
+  .est .txt{flex:1;min-width:260px;}
+  .est h3{font-family:Georgia,serif;font-size:22px;margin:0 0 6px;color:var(--dark);}
+  .est p{margin:0;font-size:14.5px;color:var(--ink);max-width:520px;}
+  .est .go{flex:none;}
+  .btn-go{background:var(--green);color:#fff;}
+
+  .foot{font-size:12px;color:var(--muted);text-align:center;margin-top:34px;}
+
+  @media(max-width:680px){.pov,.cards{grid-template-columns:1fr;}.hero h1{font-size:29px;}.hero{padding:28px 22px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="kicker">Creative Energy · Paid Social</div>
+    <h1>Creative Energy's take on paid social success.</h1>
+    <p class="lead">Paid social is the most precise targeting and measurement in marketing, but it only works when it is built right. We keep a deliberately small, sharp menu so we can be genuinely good at what we offer. Three things make any campaign work: a budget big enough to optimize, a steady stream of fresh creative, and continuous optimization once it is live. Get those right and the platforms' AI does the heavy lifting of finding your buyers.</p>
+    <div class="cta-row">
+      <a class="btn btn-red" href="#platforms">Learn more about each social platform</a>
+      <a class="btn btn-ghost" href="paid-social-recommender.html">New tool: Paid Social Estimator</a>
+    </div>
+  </div>
+
+  <div class="shead">Three things that make paid campaigns work</div>
+  <div class="pov">
+    <div class="c"><div class="n">Budget to optimize</div><div class="d">Enough spend for the algorithm to learn and make a real impact. A one-off $500 push is not worth it.</div></div>
+    <div class="c"><div class="n">Fresh creative</div><div class="d">A steady stream of varied content so the audience never sees the same ad over and over.</div></div>
+    <div class="c"><div class="n">Continuous optimization</div><div class="d">No set it and forget it. We change course based on real performance, not opinions.</div></div>
+  </div>
+
+  <div class="shead" id="platforms">The four platforms, and how we talk about them</div>
+  <div class="cards">
+    <a class="pcard" style="--ac:#1f5fd6" href="explainer-meta.html">
+      <div class="inner">
+        <div class="pname">Meta</div>
+        <div class="pone">Scale and efficiency across Facebook and Instagram. The default place to start.</div>
+        <div class="open">Open explainer &rarr;</div>
+      </div>
+    </a>
+    <a class="pcard" style="--ac:#0a66c2" href="explainer-linkedin.html">
+      <div class="inner">
+        <div class="pname">LinkedIn</div>
+        <div class="pone">Target exact titles, seniorities, and companies. The home for B2B.</div>
+        <div class="open">Open explainer &rarr;</div>
+      </div>
+    </a>
+    <a class="pcard" style="--ac:#e23b3b" href="explainer-youtube.html">
+      <div class="inner">
+        <div class="pname">YouTube</div>
+        <div class="pone">Video reach on Google's data. Strong for awareness and consideration.</div>
+        <div class="open">Open explainer &rarr;</div>
+      </div>
+    </a>
+    <a class="pcard" style="--ac:#16181d" href="explainer-tiktok.html">
+      <div class="inner">
+        <div class="pname">TikTok</div>
+        <div class="pone">Culture into commerce. Fast vertical video for consumer brands.</div>
+        <div class="open">Open explainer &rarr;</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="shead">Pressure-test the right approach</div>
+  <div class="est">
+    <div class="txt">
+      <h3>Paid Social Estimator</h3>
+      <p>Answer seven quick questions about a client and get a specific platform recommendation, ad formats, targeting, timeline, and a media plus creative investment estimate you can take into the conversation.</p>
+    </div>
+    <div class="go"><a class="btn btn-go" href="paid-social-recommender.html">Open the estimator</a></div>
+  </div>
+
+  <div class="foot">Internal reference · Creative Energy · Paid Social · Current to 2026</div>
+
+</div>
+</body>
+</html>

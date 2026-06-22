@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Energy · Paid Social Recommender</title>
+<style>
+  :root{
+    --blue:#1f5fd6;
+    --red:#e23b3b;
+    --green:#1f9e5a;
+    --yellow:#f3b71e;
+    --dark:#16181d;
+    --ink:#2a2d34;
+    --muted:#6b6f78;
+    --line:#e4e6ea;
+    --light:#f6f5f1;
+    --paper:#ffffff;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:Arial, Helvetica, sans-serif;
+    color:var(--ink);
+    background:var(--light);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:32px 22px 80px;}
+  header.top{margin-bottom:26px;}
+  .eyebrow{
+    display:inline-block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--blue);font-weight:700;margin-bottom:10px;
+  }
+  h1{
+    font-family:Georgia, 'Times New Roman', serif;
+    font-weight:700;font-size:33px;line-height:1.12;margin:0 0 8px;color:var(--dark);
+  }
+  .sub{color:var(--muted);font-size:15px;max-width:560px;}
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 22px;margin-bottom:16px;
+  }
+  .q{margin-bottom:22px;}
+  .q:last-child{margin-bottom:0;}
+  .q-label{font-weight:700;font-size:15px;color:var(--dark);margin-bottom:4px;display:block;}
+  .q-help{font-size:13px;color:var(--muted);margin-bottom:11px;}
+  .q-num{color:var(--blue);font-family:Georgia,serif;font-style:italic;margin-right:7px;}
+  .opts{display:flex;flex-wrap:wrap;gap:8px;}
+  .opt{position:relative;}
+  .opt input{position:absolute;opacity:0;width:0;height:0;}
+  .opt label{
+    display:inline-block;padding:9px 14px;border:1px solid var(--line);border-radius:999px;
+    font-size:13.5px;cursor:pointer;background:#fff;color:var(--ink);transition:all .12s ease;user-select:none;
+  }
+  .opt label:hover{border-color:#c7cbd2;}
+  .opt input:checked + label{background:var(--dark);border-color:var(--dark);color:#fff;}
+  .opt.multi input:checked + label{background:var(--blue);border-color:var(--blue);}
+  .subgroup{margin-top:13px;}
+  .subgroup-title{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:7px;}
+  textarea{
+    width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-family:inherit;
+    font-size:14px;resize:vertical;min-height:54px;color:var(--ink);
+  }
+  textarea:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  .actions{display:flex;gap:12px;align-items:center;margin-top:6px;flex-wrap:wrap;}
+  button{
+    font-family:inherit;font-size:15px;font-weight:700;border:none;border-radius:999px;
+    padding:13px 26px;cursor:pointer;transition:transform .06s ease,opacity .12s ease;
+  }
+  button:active{transform:translateY(1px);}
+  .btn-go{background:var(--red);color:#fff;}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line);padding:12px 20px;font-weight:600;}
+  .err{color:var(--red);font-size:13px;font-weight:600;display:none;}
+
+  /* Results */
+  #result{display:none;}
+  .headline-card{
+    background:var(--dark);color:#fff;border-radius:var(--radius);padding:28px 26px;margin-bottom:18px;
+  }
+  .headline-card .eyebrow{color:var(--yellow);}
+  .headline-card h2{
+    font-family:Georgia,serif;font-size:25px;line-height:1.25;margin:0;font-weight:700;color:#fff;
+  }
+  .headline-card .why{margin-top:12px;color:#c9cdd6;font-size:14.5px;}
+  .sec{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;margin-bottom:14px;}
+  .sec h3{
+    font-family:Georgia,serif;font-size:13px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--blue);margin:0 0 12px;font-weight:700;
+  }
+  .plat-row{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line);}
+  .plat-row:first-of-type{border-top:none;padding-top:0;}
+  .pill{
+    flex:none;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding:5px 10px;border-radius:999px;margin-top:2px;white-space:nowrap;
+  }
+  .pill.primary{background:var(--red);color:#fff;}
+  .pill.secondary{background:var(--yellow);color:var(--dark);}
+  .pill.skip{background:var(--light);color:var(--muted);border:1px solid var(--line);}
+  .plat-name{font-weight:700;color:var(--dark);font-size:15.5px;}
+  .plat-why{font-size:14px;color:var(--ink);margin-top:2px;}
+  ul.clean{margin:0;padding-left:18px;}
+  ul.clean li{margin-bottom:6px;font-size:14.5px;}
+  ul.clean li:last-child{margin-bottom:0;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .stat{font-family:Georgia,serif;font-size:22px;color:var(--dark);font-weight:700;}
+  .stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+  .watch li{margin-bottom:8px;}
+  .watch .flag{color:var(--red);font-weight:700;}
+  .note-inline{font-size:13px;color:var(--muted);margin-top:8px;font-style:italic;}
+  .foot{font-size:12px;color:var(--muted);margin-top:20px;text-align:center;}
+
+  /* Investment section */
+  .invest{background:#fbfbf9;border:1px solid var(--line);}
+  .ctrl{margin-bottom:16px;}
+  .ctrl > label{display:block;font-weight:700;font-size:13.5px;color:var(--dark);margin-bottom:7px;}
+  .slider-row{display:flex;align-items:center;gap:14px;}
+  .slider-row input[type=range]{
+    -webkit-appearance:none;appearance:none;height:5px;border-radius:5px;background:#dfe1e6;flex:1;outline:none;
+  }
+  .slider-row input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;width:20px;height:20px;border-radius:50%;
+    background:var(--blue);cursor:pointer;border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);
+  }
+  .slider-row input[type=range]::-moz-range-thumb{
+    width:20px;height:20px;border-radius:50%;background:var(--blue);cursor:pointer;border:3px solid #fff;
+  }
+  .ctrl-val{font-family:Georgia,serif;font-weight:700;font-size:17px;color:var(--dark);min-width:88px;text-align:right;}
+  .ctrl-hint{font-size:12.5px;color:var(--muted);margin-top:6px;}
+  table.sum{width:100%;border-collapse:collapse;margin-top:6px;}
+  table.sum td{padding:9px 0;border-top:1px solid var(--line);font-size:14.5px;vertical-align:top;}
+  table.sum td:last-child{text-align:right;font-weight:700;color:var(--dark);white-space:nowrap;}
+  table.sum tr:first-child td{border-top:none;}
+  table.sum tr.sum-total td{border-top:2px solid var(--dark);font-size:16px;padding-top:12px;}
+  table.sum tr.sum-total td:last-child{font-family:Georgia,serif;font-size:20px;color:var(--green);}
+  table.sum tr.sum-prog td{color:var(--muted);font-weight:600;}
+  table.sum tr.sum-prog td:last-child{font-family:Georgia,serif;font-size:17px;color:var(--dark);}
+  .split{margin-top:16px;border-top:1px solid var(--line);padding-top:14px;}
+  .split-head{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:9px;}
+  .split-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);}
+  .split-bar .w{background:var(--green);}
+  .split-bar .n{background:var(--yellow);}
+  .split-legend{display:flex;justify-content:space-between;gap:12px;margin-top:9px;font-size:13px;}
+  .split-legend .item{display:flex;align-items:center;gap:7px;color:var(--ink);}
+  .split-legend .dot{width:10px;height:10px;border-radius:3px;flex:none;}
+  .split-legend .dot.w{background:var(--green);}
+  .split-legend .dot.n{background:var(--yellow);}
+  .split-legend b{font-family:Georgia,serif;}
+  .cap-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .cap-tag{font-size:12px;background:var(--light);border:1px solid var(--line);border-radius:999px;padding:3px 10px;color:var(--ink);}
+
+  @media(max-width:620px){.grid2{grid-template-columns:1fr;}h1{font-size:27px;}.headline-card h2{font-size:21px;}.ctrl-val{min-width:72px;font-size:15px;}}
+  /* Client-facing render (hidden on screen, shown only when printing client PDF) */
+  #clientResult{display:none;}
+  .cf-head{border-bottom:2px solid var(--dark);padding-bottom:16px;margin-bottom:20px;}
+  .cf-kicker{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:700;}
+  .cf-title{font-family:Georgia,serif;font-size:30px;font-weight:700;color:var(--dark);margin:8px 0 4px;line-height:1.1;}
+  .cf-by{font-size:13px;color:var(--muted);}
+  .cf-intro{font-size:15px;color:var(--ink);margin-bottom:18px;}
+  .cf-foot{font-size:12px;color:var(--muted);margin-top:22px;border-top:1px solid var(--line);padding-top:12px;}
+
+  @media print{
+    body{background:#fff;}
+    .formcard,.actions,header.top .sub{display:none!important;}
+    .sec,.headline-card{break-inside:avoid;}
+    input[type=range]{display:none;}
+    body.print-internal #clientResult{display:none!important;}
+    body.print-internal #result{display:block!important;}
+    body.print-client #result{display:none!important;}
+    body.print-client header.top{display:none!important;}
+    body.print-client .foot{display:none!important;}
+    body.print-client #clientResult{display:block!important;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">Creative Energy · Paid Social</span>
+    <h1>Paid Social Recommender</h1>
+    <p class="sub">Answer seven quick questions. Get a specific, defensible paid social recommendation, complete with a media and creative investment estimate you can take into the client conversation.</p>
+  </header>
+
+  <!-- FORM -->
+  <div id="form">
+    <div class="card formcard">
+      <!-- Q1 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">01</span>What is the primary objective?</span>
+        <div class="q-help">Pick the single most important goal for this campaign.</div>
+        <div class="opts">
+          <span class="opt"><input type="radio" name="objective" id="o-aware" value="awareness"><label for="o-aware">Build awareness</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-moment" value="moment"><label for="o-moment">Reach a moment (launch / sale)</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-webtraffic" value="webtraffic"><label for="o-webtraffic">Drive traffic to a website</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-place" value="place"><label for="o-place">Drive traffic to a place / event</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-views" value="views"><label for="o-views">Video views & engagement</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-sales" value="sales"><label for="o-sales">Online sales</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-leads" value="leads"><label for="o-leads">Lead generation</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-b2b" value="b2b_dm"><label for="o-b2b">Reach B2B decision-makers</label></span>
+          <span class="opt"><input type="radio" name="objective" id="o-reengage" value="reengage"><label for="o-reengage">Re-engage existing customers</label></span>
+        </div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">02</span>Who are we targeting?</span>
+        <div class="opts">
+          <span class="opt"><input type="radio" name="audience" id="a-b2c" value="b2c"><label for="a-b2c">B2C consumers</label></span>
+          <span class="opt"><input type="radio" name="audience" id="a-b2b" value="b2b"><label for="a-b2b">B2B decision-makers</label></span>
+          <span class="opt"><input type="radio" name="audience" id="a-both" value="both"><label for="a-both">Both</label></span>
+        </div>
+      </div>
+
+      <!-- Q3 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">03</span>What audience data does the client have?</span>
+        <div class="q-help">Select all that apply. More data means better targeting and tracking.</div>
+        <div class="opts">
+          <span class="opt multi"><input type="checkbox" name="data" id="d-none" value="none"><label for="d-none">None yet</label></span>
+          <span class="opt multi"><input type="checkbox" name="data" id="d-crm" value="crm"><label for="d-crm">Customer / email list (CRM)</label></span>
+          <span class="opt multi"><input type="checkbox" name="data" id="d-companies" value="companies"><label for="d-companies">Target company list</label></span>
+          <span class="opt multi"><input type="checkbox" name="data" id="d-titles" value="titles"><label for="d-titles">Specific job titles</label></span>
+          <span class="opt multi"><input type="checkbox" name="data" id="d-demo" value="demo"><label for="d-demo">Demographic profile</label></span>
+          <span class="opt multi"><input type="checkbox" name="data" id="d-pixel" value="pixel"><label for="d-pixel">Website pixel installed</label></span>
+        </div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">04</span>About the product or service</span>
+        <div class="subgroup">
+          <div class="subgroup-title">Type</div>
+          <div class="opts">
+            <span class="opt"><input type="radio" name="ptype" id="t-physical" value="physical"><label for="t-physical">Physical product</label></span>
+            <span class="opt"><input type="radio" name="ptype" id="t-consumable" value="consumable"><label for="t-consumable">Consumable (food & bev)</label></span>
+            <span class="opt"><input type="radio" name="ptype" id="t-digital" value="digital"><label for="t-digital">Digital product</label></span>
+            <span class="opt"><input type="radio" name="ptype" id="t-service" value="service"><label for="t-service">Service</label></span>
+            <span class="opt"><input type="radio" name="ptype" id="t-event" value="event"><label for="t-event">Event or experience</label></span>
+          </div>
+        </div>
+        <div class="subgroup">
+          <div class="subgroup-title">Price & commitment</div>
+          <div class="opts">
+            <span class="opt"><input type="radio" name="price" id="p-impulse" value="impulse"><label for="p-impulse">Low-cost impulse</label></span>
+            <span class="opt"><input type="radio" name="price" id="p-mid" value="mid"><label for="p-mid">Mid-range considered</label></span>
+            <span class="opt"><input type="radio" name="price" id="p-high" value="high"><label for="p-high">High-ticket / long sales cycle</label></span>
+          </div>
+        </div>
+        <div class="subgroup">
+          <div class="subgroup-title">How visual is it?</div>
+          <div class="opts">
+            <span class="opt"><input type="radio" name="visual" id="v-high" value="high"><label for="v-high">Highly visual</label></span>
+            <span class="opt"><input type="radio" name="visual" id="v-some" value="some"><label for="v-some">Somewhat</label></span>
+            <span class="opt"><input type="radio" name="visual" id="v-low" value="low"><label for="v-low">Not really</label></span>
+          </div>
+        </div>
+        <div class="subgroup">
+          <div class="subgroup-title">Other / notes (optional)</div>
+          <textarea name="notes" placeholder="Anything that doesn't fit the boxes: category nuance, seasonality, audience age, competitive context..."></textarea>
+        </div>
+      </div>
+
+      <!-- Q5 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">05</span>Geography / reach</span>
+        <div class="opts">
+          <span class="opt"><input type="radio" name="geo" id="g-local" value="local"><label for="g-local">Local or regional</label></span>
+          <span class="opt"><input type="radio" name="geo" id="g-national" value="national"><label for="g-national">National</label></span>
+          <span class="opt"><input type="radio" name="geo" id="g-intl" value="intl"><label for="g-intl">International</label></span>
+        </div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">06</span>Creative capacity</span>
+        <div class="q-help">What can the client realistically produce on an ongoing basis? Select all that apply. Whatever they can't cover, Creative Energy produces (estimated below).</div>
+        <div class="opts">
+          <span class="opt multi"><input type="checkbox" name="creative" id="c-pro" value="pro"><label for="c-pro">Pro photo & video</label></span>
+          <span class="opt multi"><input type="checkbox" name="creative" id="c-ugc" value="ugc"><label for="c-ugc">Creator / UGC access</label></span>
+          <span class="opt multi"><input type="checkbox" name="creative" id="c-basic" value="basic"><label for="c-basic">Basic graphics</label></span>
+          <span class="opt multi"><input type="checkbox" name="creative" id="c-little" value="little"><label for="c-little">Very little</label></span>
+        </div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="q">
+        <span class="q-label"><span class="q-num">07</span>Monthly budget appetite</span>
+        <div class="opts">
+          <span class="opt"><input type="radio" name="budget" id="b-low" value="under2k"><label for="b-low">Under $2k</label></span>
+          <span class="opt"><input type="radio" name="budget" id="b-2to5" value="2to5"><label for="b-2to5">$2k–$5k</label></span>
+          <span class="opt"><input type="radio" name="budget" id="b-5to10" value="5to10"><label for="b-5to10">$5k–$10k</label></span>
+          <span class="opt"><input type="radio" name="budget" id="b-10plus" value="over10"><label for="b-10plus">$10k+</label></span>
+          <span class="opt"><input type="radio" name="budget" id="b-rec" value="rec"><label for="b-rec">Not sure / recommend</label></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn-go" id="goBtn">Build recommendation</button>
+      <span class="err" id="errMsg">Please answer the required questions (1, 2, all of 4, 5, 6, 7).</span>
+    </div>
+  </div>
+
+  <!-- RESULT (internal) -->
+  <div id="result"></div>
+
+  <!-- RESULT (client-facing, print only) -->
+  <div id="clientResult"></div>
+
+  <div class="foot">Creative Energy · Logic current to 2026 · A starting point for the conversation, not a substitute for a media plan.</div>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- Reference data ---------- */
+const PLATFORM_NAMES = {
+  meta:'Meta (Facebook & Instagram)',
+  linkedin:'LinkedIn',
+  youtube:'YouTube',
+  tiktok:'TikTok'
+};
+const FLOORS = { meta:[1500,3000], tiktok:[2000,3000], youtube:[1500,3000], linkedin:[4000,5000] };
+const BUDGET_MAX = { under2k:2000, '2to5':5000, '5to10':10000, over10:20000, rec:null };
+const CONTENT_RATE = 150;       // $/hr content creation
+const MEDIA_MARKUP = 0.1765;    // markup on working media
+
+const CAP_RANK = { pro:4, ugc:3, basic:2, little:1 };
+const CAP_LABEL = { pro:'Pro photo & video', ugc:'Creator / UGC access', basic:'Basic graphics', little:'Very little' };
+function bestCap(arr){
+  if(!arr || !arr.length) return 'little';
+  return arr.slice().sort((a,b)=>CAP_RANK[b]-CAP_RANK[a])[0];
+}
+
+/* ---------- Scoring ---------- */
+function scorePlatforms(i){
+  const cap = bestCap(i.creative);
+  const s = { meta:5, linkedin:2, youtube:3, tiktok:3 };
+  const has = v => i.data.includes(v);
+
+  if(i.audience==='b2b'){ s.linkedin+=6; s.tiktok-=5; s.meta-=1; s.youtube+=1; }
+  if(i.audience==='b2c'){ s.meta+=2; s.tiktok+=2; s.linkedin-=4; }
+  if(i.audience==='both'){ s.meta+=1; s.linkedin+=1; }
+
+  switch(i.objective){
+    case 'awareness': s.youtube+=3; s.meta+=2; s.tiktok+=2; break;
+    case 'moment': s.meta+=2; s.tiktok+=2; s.youtube+=1; break;
+    case 'webtraffic': s.meta+=3; s.tiktok+=1; break;
+    case 'place': s.meta+=4; break;
+    case 'views': s.tiktok+=3; s.youtube+=3; s.meta+=1; break;
+    case 'sales': s.meta+=4; s.tiktok+=2; break;
+    case 'leads': s.meta+=2; s.linkedin+=3; break;
+    case 'b2b_dm': s.linkedin+=7; s.meta-=1; s.tiktok-=4; break;
+    case 'reengage': s.meta+=4; break;
+  }
+
+  if(has('companies')) s.linkedin+=3;
+  if(has('titles')) s.linkedin+=3;
+  if(has('crm')){ s.meta+=2; s.linkedin+=1; s.youtube+=1; }
+  if(has('pixel')){ s.meta+=2; s.youtube+=1; }
+  if(has('demo')){ s.meta+=1; s.tiktok+=1; }
+
+  if(i.ptype==='physical'){ s.meta+=2; s.tiktok+=1; }
+  if(i.ptype==='consumable'){ s.tiktok+=2; s.meta+=2; }
+  if(i.ptype==='digital'){ s.meta+=1; s.youtube+=1; }
+  if(i.ptype==='service'){ s.linkedin+=2; s.meta+=1; }
+  if(i.ptype==='event'){ s.meta+=2; s.tiktok+=1; }
+
+  if(i.price==='impulse'){ s.tiktok+=2; s.meta+=1; s.linkedin-=2; }
+  if(i.price==='mid'){ s.meta+=1; }
+  if(i.price==='high'){ s.linkedin+=3; s.youtube+=1; s.tiktok-=2; }
+
+  if(i.visual==='high'){ s.meta+=1; s.tiktok+=2; }
+  if(i.visual==='low'){ s.tiktok-=2; s.linkedin+=1; }
+
+  if(i.geo==='local'){ s.meta+=2; s.linkedin-=1; }
+  if(i.geo==='national'){ s.youtube+=1; }
+  if(i.geo==='intl'){ s.linkedin+=1; }
+
+  // Creative capability is now a light nudge only. We can produce the creative for a fee,
+  // so a lack of in-house capability no longer rules out a video-heavy platform.
+  if(cap==='little'){ s.tiktok-=2; s.youtube-=2; }
+  if(cap==='basic'){ s.tiktok-=1; s.youtube-=1; }
+  if(cap==='ugc'){ s.tiktok+=3; s.meta+=1; }
+  if(cap==='pro'){ s.youtube+=2; s.meta+=1; s.tiktok+=1; }
+
+  const bmax = BUDGET_MAX[i.budget];
+  if(bmax!==null){
+    if(bmax < FLOORS.linkedin[0]) s.linkedin-=5;
+    if(bmax < 2000){ s.meta+=1; s.youtube-=1; s.linkedin-=3; s.tiktok-=1; }
+    if(bmax >= 5000) s.linkedin+=1;
+  }
+  return s;
+}
+
+/* ---------- Format menus ---------- */
+function formatsFor(plat, obj){
+  const M = {
+    meta:{ awareness:['Video & Reels ads (vertical 9x16)','Image ads'], moment:['Video & Reels ads','Image ads'],
+      webtraffic:['Image ads','Video & Reels ads','Carousel ads'], place:['Image ads','Video & Reels ads'],
+      views:['Video & Reels ads'], sales:['Collection / catalog ads','Video & Reels ads','Carousel ads'],
+      leads:['Lead form ads','Image or Video ads'], b2b_dm:['Lead form ads','Image ads'],
+      reengage:['Carousel ads','Image ads (retargeting)'] },
+    linkedin:{ awareness:['Document ads','Single image Sponsored Content','Video ads'], moment:['Single image Sponsored Content','Video ads'],
+      webtraffic:['Single image Sponsored Content','Video ads'], place:['Single image Sponsored Content'],
+      views:['Video ads','Document ads'], sales:['Single image Sponsored Content','Lead Gen Forms'],
+      leads:['Lead Gen Forms','Document ads','Single image Sponsored Content'],
+      b2b_dm:['Lead Gen Forms','Document ads','Conversation ads (sparingly)'], reengage:['Single image Sponsored Content (retargeting)'] },
+    youtube:{ awareness:['Bumper ads (6s)','Skippable in-stream ads','Shorts ads'], moment:['Bumper ads (6s)','Skippable in-stream ads'],
+      webtraffic:['Skippable in-stream ads','Demand Gen campaign'], place:['Skippable in-stream ads','Shorts ads'],
+      views:['Skippable in-stream ads','Shorts ads'], sales:['Demand Gen campaign','Skippable in-stream ads'],
+      leads:['Demand Gen campaign'], b2b_dm:['Skippable in-stream ads','Demand Gen campaign'], reengage:['Demand Gen campaign (retargeting)'] },
+    tiktok:{ awareness:['In-feed video ads','Spark Ads'], moment:['Spark Ads','In-feed video ads'],
+      webtraffic:['In-feed video ads','Spark Ads'], place:['In-feed video ads','Spark Ads'],
+      views:['In-feed video ads','Spark Ads'], sales:['Video Shopping Ads','Spark Ads'],
+      leads:['In-feed video ads (with lead form)','Spark Ads'], b2b_dm:['In-feed video ads'], reengage:['Spark Ads (retargeting)'] }
+  };
+  return (M[plat] && M[plat][obj]) || M[plat].awareness;
+}
+
+/* ---------- Targeting & setup ---------- */
+function setupFor(plat, i){
+  const has = v => i.data.includes(v);
+  const out = [];
+  if(plat==='meta'){
+    out.push('Set the campaign objective to '+metaObjective(i.objective)+' and let Advantage+ do the heavy lifting on delivery.');
+    if(has('crm')) out.push('Upload the CRM list to build a Custom Audience, then a 1-3% Lookalike to find new buyers who resemble your best customers.');
+    if(has('pixel')) out.push('Use the pixel and Conversions API for server-side tracking, and build a retargeting audience from site visitors.');
+    if(i.geo==='local') out.push('Geofence the target area with a radius around the location, layered on broad targeting.');
+    if(!has('crm') && !has('pixel')) out.push('With no first-party data yet, start broad with Advantage+ Audience and let strong creative find the audience. Install the pixel before launch so you can retarget later.');
+  }
+  if(plat==='linkedin'){
+    out.push('Build the audience from professional attributes: job title, seniority, function, plus company size and industry.');
+    if(has('companies')) out.push('Load the target company list for an account-based (ABM) campaign aimed straight at the right organizations.');
+    if(has('titles')) out.push('Layer the specific job titles on top of company and seniority to tighten the audience.');
+    if(has('crm')) out.push('Upload contacts as a Matched Audience, and build a lookalike from your strongest accounts.');
+    out.push('Keep audiences above ~50k members so delivery does not stall, and measure on cost-per-lead and pipeline, not CPC.');
+  }
+  if(plat==='youtube'){
+    out.push('Run inside Google Ads. For conversion goals use a Demand Gen campaign so Google spreads creative across Shorts, in-stream, and in-feed.');
+    out.push('Target with In-Market and Custom Segments built from Google search terms, the intent signal no social platform has.');
+    if(has('crm')) out.push('Add Customer Match from the CRM list for retargeting and lookalike reach.');
+  }
+  if(plat==='tiktok'){
+    out.push('Set up the campaign with Smart targeting on, and feed it interest and behavior signals to start.');
+    if(has('crm')) out.push('Upload the customer list as a Custom Audience and build a lookalike from it.');
+    out.push('Prioritize Spark Ads off real creator or organic posts. They carry native engagement and outperform standard ads.');
+    if(i.objective==='sales') out.push('Connect TikTok Shop and run Video Shopping Ads so the video itself is the storefront.');
+  }
+  return out;
+}
+function metaObjective(o){
+  const map={awareness:'Awareness',moment:'Awareness or Reach',webtraffic:'Traffic',place:'Traffic',views:'Engagement / Video views',sales:'Sales',leads:'Leads',b2b_dm:'Leads',reengage:'Sales (retargeting)'};
+  return map[o]||'Sales';
+}
+
+/* ---------- Creative need (platform-driven, capability-independent) ---------- */
+function creativeNeed(primary){
+  const fast = (primary==='tiktok' || primary==='youtube');
+  return {
+    low:8, top:12,
+    active:'5 to 8',
+    refresh: fast ? 'every 3 to 7 days' : 'every 10 to 14 days',
+    fast:fast
+  };
+}
+
+/* ---------- Duration ---------- */
+function durationFor(i){
+  const conv = ['sales','leads','b2b_dm','reengage'].includes(i.objective);
+  if(conv){
+    return { stat:'90 days', label:'Recommended program', months:3, monthsLabel:'3-month program',
+      bullets:[
+        'Protect the 7-14 day learning phase. Do not judge or heavily edit during it; changes reset the learning.',
+        'Six weeks is the minimum honest test. Less than that and you are reading noise.',
+        'Run 90 days or ongoing. Conversion performance compounds with continuous optimization.'
+      ]};
+  }
+  return { stat:'6-8 weeks', label:'Recommended flight', months:2, monthsLabel:'2-month flight',
+    bullets:[
+      'Awareness and engagement goals can run in focused flights, but still give it 6 to 8 weeks to read.',
+      'Allow the 7-14 day learning phase before making changes.',
+      'For a launch or sale moment, concentrate budget into the window rather than stretching it.'
+    ]};
+}
+
+/* ---------- Watch-outs ---------- */
+function watchOuts(primary, i){
+  const out=[];
+  const cap = bestCap(i.creative);
+  const needsVideo = ['tiktok','youtube'].includes(primary);
+  if(needsVideo && (cap==='basic'||cap==='little')){
+    out.push({flag:false, text:PLATFORM_NAMES[primary]+' runs on video and the client has limited creative capacity, so the estimate below assumes Creative Energy produces it. That is a real line item, not an afterthought.'});
+  }
+  const bmax = BUDGET_MAX[i.budget];
+  if(bmax!==null && bmax < FLOORS[primary][0]){
+    out.push({flag:true, text:'Budget sits under the viable media floor for the lead platform. Set expectations toward upper-funnel results, or raise the spend.'});
+  }
+  if(i.audience==='b2b' && ['sales','webtraffic','views'].includes(i.objective) && primary!=='linkedin'){
+    out.push({flag:false, text:'This is a B2B audience but the objective points to a broader-reach platform. If reaching specific titles or companies matters most, LinkedIn should be in the mix.'});
+  }
+  if(i.geo==='intl' && bmax!==null && bmax<5000){
+    out.push({flag:false, text:'International reach on a modest budget spreads thin. Prioritize one or two core markets first.'});
+  }
+  if(i.data.length===1 && i.data[0]==='none'){
+    out.push({flag:false, text:'No first-party data yet. Install tracking and start capturing a customer list now; it sharpens both targeting and measurement within a few weeks.'});
+  }
+  if(primary==='linkedin'){
+    out.push({flag:false, text:'Judge LinkedIn on cost-per-opportunity and pipeline, not CPC. A $150 lead can still be a bargain if it closes at 2-3x the rate of other channels.'});
+  }
+  if(out.length===0){
+    out.push({flag:false, text:'Inputs line up cleanly. Keep creative fresh and let the campaign run through its learning phase before optimizing.'});
+  }
+  return out;
+}
+
+/* ---------- Headline ---------- */
+function headline(primary, i){
+  const objText = { awareness:'building awareness', moment:'a launch moment', webtraffic:'driving website traffic',
+    place:'driving foot traffic', views:'video views and engagement', sales:'online sales',
+    leads:'lead generation', b2b_dm:'reaching B2B decision-makers', reengage:'re-engaging existing customers' }[i.objective];
+  const audText = i.audience==='b2b'?'B2B decision-makers': i.audience==='b2c'?'consumers':'a mixed audience';
+  return 'For '+objText+' with '+audText+', lead with paid '+PLATFORM_NAMES[primary].replace(' (Facebook & Instagram)','')+'.';
+}
+function whyPrimary(primary){
+  return ({
+    meta:'Meta gives the scale, the AI optimization, and the retargeting to deliver this efficiently, and it is the most forgiving place to start.',
+    linkedin:'LinkedIn is the only platform that can target the exact titles, seniority, and companies this objective needs.',
+    youtube:'YouTube reaches almost everyone through video and runs on Google search intent, ideal for this kind of reach and consideration.',
+    tiktok:'TikTok can move this fast through native video, Spark Ads, and social commerce, as long as the content keeps coming.'
+  })[primary];
+}
+function whyShort(p){ return ({
+  meta:'Best scale, AI optimization, and retargeting for this brief. The safe, strong starting point.',
+  linkedin:'The only platform that can target the exact people and companies this needs.',
+  youtube:'Video reach plus Google intent data, strong for awareness and consideration.',
+  tiktok:'Native video and social commerce that can move this quickly.'
+})[p]; }
+function secondWhy(p){ return ({
+  meta:'Add Meta for efficient retargeting and broader consumer reach.',
+  linkedin:'Add LinkedIn to reach specific titles and companies the lead platform cannot.',
+  youtube:'Add YouTube to extend reach and reinforce the message with video.',
+  tiktok:'Add TikTok for cultural reach and native video, if creative can keep up.'
+})[p]; }
+function skipWhy(p,i){
+  const cap = bestCap(i.creative);
+  if(p==='linkedin') return 'Cost and B2B focus do not fit this brief.';
+  if(p==='tiktok') return (cap==='basic'||cap==='little') ? 'Weaker fit here, and it would lean entirely on produced video.' : 'Audience or objective fit is weaker here.';
+  if(p==='youtube') return 'Better as a later add than a starting point for this brief.';
+  if(p==='meta') return 'A weaker fit than the lead platform for this specific objective.';
+  return 'Lower fit for this brief.';
+}
+
+/* ---------- Money formatting ---------- */
+function money(n){ return '$'+Math.round(n).toLocaleString(); }
+
+/* ---------- Calc state (live) ---------- */
+let CALC = { months:3 };
+let LAST = null;   // last inputs, for the client-facing PDF render
+let REPORT = null; // context for syncing report figures to the sliders
+function currentMoney(){
+  const media  = +document.getElementById('mediaSlider').value;
+  const pieces = +document.getElementById('piecesSlider').value;
+  const hours  = +document.getElementById('hoursSlider').value;
+  const markup  = media * MEDIA_MARKUP;
+  const gross   = media + markup;
+  const fee     = pieces * hours * CONTENT_RATE;
+  const monthly = gross + fee;
+  const program = monthly * CALC.months;
+  return { media, pieces, hours, markup, gross, fee, monthly, program };
+}
+
+function recalc(){
+  const m = currentMoney();
+  const media=m.media, pieces=m.pieces, hours=m.hours, markup=m.markup, fee=m.fee, monthly=m.monthly, program=m.program;
+
+  document.getElementById('mediaVal').textContent  = money(media);
+  document.getElementById('piecesVal').textContent = pieces;
+  document.getElementById('hoursVal').textContent  = hours.toFixed(1).replace('.0','')+' hr';
+
+  document.getElementById('sumMedia').textContent   = money(media);
+  document.getElementById('sumMarkup').textContent  = money(markup);
+  document.getElementById('sumPcs').textContent     = pieces;
+  document.getElementById('sumHrs').textContent     = hours.toFixed(1).replace('.0','');
+  document.getElementById('sumFee').textContent     = money(fee);
+  document.getElementById('sumMonthly').textContent = money(monthly);
+  document.getElementById('sumProgram').textContent = money(program);
+
+  // Working (media) vs non-working (markup + creative). Ratio holds monthly or full program.
+  const working = media;
+  const nonworking = markup + fee;
+  const denom = working + nonworking;
+  const pctW = denom>0 ? Math.round(working/denom*100) : 0;
+  const pctN = 100 - pctW;
+  document.getElementById('barW').style.width = pctW+'%';
+  document.getElementById('barN').style.width = pctN+'%';
+  document.getElementById('pctW').textContent = pctW+'%';
+  document.getElementById('pctN').textContent = pctN+'%';
+
+  syncReport();
+}
+
+/* Sync the budget-guidance and creative sections to the current slider values
+   so every figure in the report (and either PDF) matches the investment block. */
+function syncReport(){
+  if(!REPORT) return;
+  const m = currentMoney();
+  const p = REPORT.primary, need = REPORT.need, floor = REPORT.floor;
+
+  const bg = document.getElementById('budgetGuideText');
+  if(bg){
+    bg.innerHTML = 'This plan is built on <strong>'+money(m.media)+' per month</strong> in working media on '
+      + PLATFORM_NAMES[p] + '. (Recommended floor for '+PLATFORM_NAMES[p]+': '+money(floor[0])+' to '+money(floor[1])+'/mo, before creative.)';
+  }
+
+  const cl = document.getElementById('creativeNeedList');
+  if(cl){
+    const hrs = m.hours.toFixed(1).replace('.0','');
+    cl.innerHTML =
+        '<li>This plan is built on <strong>'+m.pieces+' pieces per month</strong> produced by Creative Energy, at <strong>'+hrs+' hour'+(m.hours===1?'':'s')+' each</strong>.</li>'
+      + '<li><strong>'+PLATFORM_NAMES[p]+'</strong> needs roughly '+need.low+' to '+need.top+' fresh variants per month to avoid fatigue, with '+need.active+' active at a time, refreshed '+need.refresh+'.</li>'
+      + '<li>Watch weekly frequency. On cold audiences, performance slips above ~2.5 and falls off past 4.0.</li>';
+  }
+}
+
+/* ---------- Client-facing copy ---------- */
+function clientHeadline(primary, i){
+  const objText = { awareness:'build your brand awareness', moment:'make the most of this moment',
+    webtraffic:'drive qualified traffic to your site', place:'drive people to your location',
+    views:'put your video in front of the right people', sales:'drive online sales',
+    leads:'generate quality leads', b2b_dm:'reach the decision-makers who matter to you',
+    reengage:'bring your existing customers back' }[i.objective];
+  return 'To '+objText+', we recommend leading with paid '+PLATFORM_NAMES[primary].replace(' (Facebook & Instagram)','')+'.';
+}
+function clientWhy(primary){
+  return ({
+    meta:'Meta gives you scale and the smartest optimization in social. With the right creative, it finds your buyers efficiently and lets us bring back the people who already know you.',
+    linkedin:'LinkedIn is the only place we can put your message in front of the exact titles, companies, and industries you care about. It costs more per click, but the leads are worth more.',
+    youtube:'YouTube reaches almost everyone through video and taps into what people are already searching for on Google. It is a strong way to build awareness and consideration.',
+    tiktok:'TikTok moves fast. Native video, creator content, and social commerce put your brand into culture and in front of new audiences quickly.'
+  })[primary];
+}
+function clientPlatLine(primary, second, secondViable){
+  let t = 'We would put your budget behind '+PLATFORM_NAMES[primary].replace(' (Facebook & Instagram)','')+' first.';
+  if(secondViable) t += ' Once that is working, '+PLATFORM_NAMES[second].replace(' (Facebook & Instagram)','')+' is the natural next layer to extend reach.';
+  return t;
+}
+function clientSetup(plat, i){
+  const has = v => i.data.includes(v);
+  const out=[];
+  if(plat==='meta'){
+    out.push('We will let Meta’s AI do what it does best, finding the people most likely to act, guided by strong creative rather than narrow guesswork.');
+    if(has('crm')) out.push('Your customer list becomes a powerful tool: we use it to find new people who look like your best buyers, and to speak to the ones who already know you.');
+    if(i.geo==='local') out.push('We focus delivery tightly around your area so you are not paying to reach people who can never walk through the door.');
+    if(!has('crm') && !has('pixel')) out.push('We will set up tracking before launch so every dollar is measurable and we can retarget interested people over time.');
+  }
+  if(plat==='linkedin'){
+    out.push('We build the audience from real professional detail: job title, seniority, company, and industry, so your spend goes only toward the people who can say yes.');
+    if(has('companies')) out.push('We aim directly at your target account list, putting you in front of the specific companies you want to win.');
+  }
+  if(plat==='youtube'){
+    out.push('We reach people through video and through what they are actively searching for, then use Google’s tools to keep your message in front of the right audience.');
+  }
+  if(plat==='tiktok'){
+    out.push('We lead with real, native video, amplifying creator and organic content that already feels at home on the platform.');
+    if(i.objective==='sales') out.push('With TikTok Shop connected, the video itself becomes a place to buy.');
+  }
+  return out;
+}
+
+function buildClientRec(i){
+  const m = currentMoney();
+  const scores = scorePlatforms(i);
+  const ranked = Object.keys(scores).sort((a,b)=>scores[b]-scores[a]);
+  const primary = ranked[0], second = ranked[1];
+  const secondViable = (scores[second] >= 6) && (scores[primary]-scores[second] <= 6);
+  const dur = durationFor(i);
+  const need = creativeNeed(primary);
+
+  let h = '';
+  h += '<div class="cf-head"><div class="cf-kicker">Creative Energy · Paid Social Recommendation</div>'
+     + '<div class="cf-title">'+clientHeadline(primary,i)+'</div>'
+     + '<div class="cf-by">Prepared for your review by Creative Energy</div></div>';
+
+  h += '<p class="cf-intro">'+clientWhy(primary)+'</p>';
+
+  h += '<div class="sec"><h3>Where we would focus</h3><p style="margin:0 0 8px;font-size:14.5px;">'+clientPlatLine(primary,second,secondViable)+'</p></div>';
+
+  h += '<div class="sec"><h3>What we would run</h3>'
+     + '<div style="font-weight:700;color:var(--dark);margin-bottom:6px;">'+PLATFORM_NAMES[primary]+'</div>'+list(formatsFor(primary,i.objective));
+  if(secondViable){
+    h += '<div style="font-weight:700;color:var(--dark);margin:14px 0 6px;">'+PLATFORM_NAMES[second]+'</div>'+list(formatsFor(second,i.objective));
+  }
+  h += '</div>';
+
+  h += '<div class="sec"><h3>How we would approach it</h3>'+list(clientSetup(primary,i))+'</div>';
+
+  h += '<div class="sec"><h3>Timeline</h3><p style="margin:0;font-size:14.5px;">We recommend planning for a <strong>'+dur.monthsLabel+'</strong>. Paid social needs a short learning period at the start, and the results compound the longer we optimize. We will review performance with you along the way and adjust based on what the data tells us.</p></div>';
+
+  h += '<div class="sec"><h3>Creative</h3><p style="margin:0;font-size:14.5px;">To keep your ads fresh and avoid fatigue, this plan includes <strong>'+m.pieces+' new pieces of creative each month</strong>, produced by Creative Energy for you. To stay effective, '+PLATFORM_NAMES[primary].replace(' (Facebook & Instagram)','')+' typically needs '+need.low+' to '+need.top+' fresh pieces a month, and we will adjust if you are able to provide some of it.</p></div>';
+
+  // Investment (client labels, locked numbers, no sliders/split)
+  h += '<div class="sec invest"><h3>Your investment</h3><table class="sum">'
+     + '<tr><td>Working media (ad spend)</td><td>'+money(m.media)+' / mo</td></tr>'
+     + '<tr><td>Media management & optimization</td><td>'+money(m.markup)+' / mo</td></tr>'
+     + '<tr><td>Creative production ('+m.pieces+' pieces / month)</td><td>'+money(m.fee)+' / mo</td></tr>'
+     + '<tr class="sum-total"><td>Monthly investment</td><td>'+money(m.monthly)+'</td></tr>'
+     + '<tr class="sum-prog"><td>Full '+dur.monthsLabel+'</td><td>'+money(m.program)+'</td></tr>'
+     + '</table>'
+     + '<div class="ctrl-hint" style="margin-top:12px;">Figures are an estimate to frame our planning together and may be refined as we scope the work.</div></div>';
+
+  h += '<div class="cf-foot">Creative Energy · This recommendation is a starting point for our conversation. We will refine it together based on your goals and budget.</div>';
+  return h;
+}
+
+function doPrint(mode){
+  if(mode==='client'){
+    if(!LAST) return;
+    document.getElementById('clientResult').innerHTML = buildClientRec(LAST);
+  }
+  document.body.classList.add('print-'+mode);
+  window.print();
+}
+window.addEventListener('afterprint', function(){
+  document.body.classList.remove('print-internal','print-client');
+});
+
+/* ---------- Build recommendation ---------- */
+function buildRec(i){
+  const scores = scorePlatforms(i);
+  const ranked = Object.keys(scores).sort((a,b)=>scores[b]-scores[a]);
+  const primary = ranked[0];
+  const second = ranked[1];
+  const secondViable = (scores[second] >= 6) && (scores[primary]-scores[second] <= 6);
+
+  const dur = durationFor(i);
+  const need = creativeNeed(primary);
+  const floor = FLOORS[primary];
+  const mediaDefault = Math.round(((floor[0]+floor[1])/2)/250)*250;
+  const cap = bestCap(i.creative);
+  const capList = (i.creative||[]).slice().sort((a,b)=>CAP_RANK[b]-CAP_RANK[a]).map(c=>CAP_LABEL[c]);
+  const canSelfProduce = (cap==='pro' || cap==='ugc');
+
+  let html = '';
+
+  // Headline
+  html += '<div class="headline-card"><span class="eyebrow">The recommendation</span>';
+  html += '<h2>'+headline(primary,i)+'</h2>';
+  html += '<div class="why">'+whyPrimary(primary)+'</div></div>';
+
+  // Platforms
+  html += '<div class="sec"><h3>Recommended platforms</h3>';
+  html += platRow('primary','Lead', primary, whyShort(primary));
+  if(secondViable) html += platRow('secondary','Layer in', second, secondWhy(second));
+  const rest = ranked.slice(secondViable?2:1);
+  rest.forEach(p=>{ html += platRow('skip','Skip for now', p, skipWhy(p,i)); });
+  html += '</div>';
+
+  // Formats
+  html += '<div class="sec"><h3>Ad formats to run</h3>';
+  html += '<div style="font-weight:700;color:var(--dark);margin-bottom:6px;">'+PLATFORM_NAMES[primary]+'</div>'+list(formatsFor(primary,i.objective));
+  if(secondViable){
+    html += '<div style="font-weight:700;color:var(--dark);margin:14px 0 6px;">'+PLATFORM_NAMES[second]+'</div>'+list(formatsFor(second,i.objective));
+  }
+  html += '</div>';
+
+  // Setup & targeting
+  html += '<div class="sec"><h3>Campaign setup & targeting</h3>'+list(setupFor(primary,i))+'</div>';
+
+  // Budget guidance + Duration
+  html += '<div class="grid2">';
+  html += '<div class="sec"><h3>Media budget guidance</h3><p id="budgetGuideText" style="margin:0;font-size:14.5px;"></p></div>';
+  html += '<div class="sec"><h3>Duration</h3><div class="stat">'+dur.stat+'</div><div class="stat-label">'+dur.label+'</div>'
+        + '<ul class="clean" style="margin-top:11px;">'+dur.bullets.map(b=>'<li>'+b+'</li>').join('')+'</ul></div>';
+  html += '</div>';
+
+  // Creative need
+  html += '<div class="sec"><h3>Creative you will need</h3>';
+  if(capList.length){ html += '<div class="cap-tags"><span style="font-size:12.5px;color:var(--muted);align-self:center;">Client can produce:</span>'+capList.map(c=>'<span class="cap-tag">'+c+'</span>').join('')+'</div>'; }
+  html += '<ul class="clean" id="creativeNeedList"></ul>';
+  html += '<p style="margin:8px 0 0;font-size:14.5px;">'
+        + (canSelfProduce
+            ? 'This client can produce some creative in-house. The estimate defaults to Creative Energy producing the full volume, so dial the piece count down to reflect what they will cover.'
+            : 'This client has limited creative capacity, so the estimate assumes Creative Energy produces the full monthly volume.')
+        + '</p></div>';
+
+  REPORT = { primary:primary, need:need, floor:floor };
+
+  // Investment estimate (interactive)
+  html += '<div class="sec invest"><h3>Recommended investment</h3>';
+  html += '<div class="ctrl"><label>Monthly working media</label>'
+        + '<div class="slider-row"><input type="range" id="mediaSlider" min="500" max="20000" step="250" value="'+mediaDefault+'"><span class="ctrl-val" id="mediaVal"></span></div>'
+        + '<div class="ctrl-hint">Recommended floor for '+PLATFORM_NAMES[primary]+': '+money(floor[0])+' to '+money(floor[1])+'/mo.</div></div>';
+
+  html += '<div class="ctrl"><label>Creative pieces per month Creative Energy produces</label>'
+        + '<div class="slider-row"><input type="range" id="piecesSlider" min="0" max="30" step="1" value="'+need.top+'"><span class="ctrl-val" id="piecesVal"></span></div>'
+        + '<div class="ctrl-hint">Defaults to the full monthly need ('+need.top+'). Lower it to reflect anything the client produces themselves. Add more if running a second platform.</div></div>';
+
+  html += '<div class="ctrl"><label>Hours per piece</label>'
+        + '<div class="slider-row"><input type="range" id="hoursSlider" min="0.5" max="6" step="0.5" value="1"><span class="ctrl-val" id="hoursVal"></span></div>'
+        + '<div class="ctrl-hint">Billed at '+money(CONTENT_RATE)+'/hr content rate. Most single ad variants run about an hour; bump it up for heavier video.</div></div>';
+
+  html += '<table class="sum">'
+        + '<tr><td>Working media</td><td id="sumMedia"></td></tr>'
+        + '<tr><td>Agency media markup (17.65%)</td><td id="sumMarkup"></td></tr>'
+        + '<tr><td>Creative production (<span id="sumPcs"></span> pcs &times; <span id="sumHrs"></span> hr &times; '+money(CONTENT_RATE)+')</td><td id="sumFee"></td></tr>'
+        + '<tr class="sum-total"><td>Monthly total investment</td><td id="sumMonthly"></td></tr>'
+        + '<tr class="sum-prog"><td>Full '+dur.monthsLabel+'</td><td id="sumProgram"></td></tr>'
+        + '</table>';
+  html += '<div class="split"><div class="split-head">Working vs. non-working dollars (full program)</div>'
+        + '<div class="split-bar"><div class="w" id="barW"></div><div class="n" id="barN"></div></div>'
+        + '<div class="split-legend">'
+        + '<span class="item"><span class="dot w"></span>Working media <b id="pctW"></b></span>'
+        + '<span class="item"><span class="dot n"></span>Non-working (markup + creative) <b id="pctN"></b></span>'
+        + '</div></div>';
+  html += '<div class="ctrl-hint" style="margin-top:12px;">Markup applies to working media only. The creative fee is the agency production cost. Figures are estimates to frame the conversation, not a final quote.</div>';
+  html += '</div>';
+
+  // Watch-outs
+  html += '<div class="sec"><h3>Watch-outs</h3><ul class="clean watch">';
+  watchOuts(primary,i).forEach(w=>{ html += '<li>'+(w.flag?'<span class="flag">Flag: </span>':'')+w.text+'</li>'; });
+  html += '</ul></div>';
+
+  // Notes echo
+  if(i.notes && i.notes.trim()){
+    html += '<div class="sec"><h3>Your notes to factor in</h3><p style="margin:0;font-size:14.5px;color:var(--ink);">'+escapeHtml(i.notes.trim())+'</p>'
+          + '<p class="note-inline">These are not yet in the logic above. Read them against the recommendation and adjust judgment as needed.</p></div>';
+  }
+
+  // Actions
+  html += '<div class="actions" style="margin-top:6px;">'
+        + '<button class="btn-ghost" id="pdfInternal">Save internal PDF</button>'
+        + '<button class="btn-go" id="pdfClient">Save client-facing PDF</button>'
+        + '<button class="btn-ghost" id="restartBtn">Start over</button></div>';
+
+  CALC.months = dur.months;
+  return html;
+}
+
+function platRow(kind,label,plat,why){
+  return '<div class="plat-row"><span class="pill '+kind+'">'+label+'</span>'
+       + '<div><div class="plat-name">'+PLATFORM_NAMES[plat]+'</div><div class="plat-why">'+why+'</div></div></div>';
+}
+function list(arr){ return '<ul class="clean">'+arr.map(x=>'<li>'+x+'</li>').join('')+'</ul>'; }
+function escapeHtml(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- Wiring ---------- */
+function getInputs(){
+  const val = n => { const el=document.querySelector('input[name="'+n+'"]:checked'); return el?el.value:null; };
+  const multi = n => Array.from(document.querySelectorAll('input[name="'+n+'"]:checked')).map(e=>e.value);
+  return {
+    objective: val('objective'), audience: val('audience'), data: multi('data'),
+    ptype: val('ptype'), price: val('price'), visual: val('visual'),
+    notes: document.querySelector('textarea[name="notes"]').value,
+    geo: val('geo'), creative: multi('creative'), budget: val('budget')
+  };
+}
+
+document.getElementById('goBtn').addEventListener('click', function(){
+  const i = getInputs();
+  const ok = i.objective && i.audience && i.ptype && i.price && i.visual && i.geo && i.creative.length && i.budget;
+  if(!ok){ document.getElementById('errMsg').style.display='inline'; return; }
+  document.getElementById('errMsg').style.display='none';
+  if(i.data.length===0) i.data=['none'];
+  LAST = i;
+
+  const res = document.getElementById('result');
+  res.innerHTML = buildRec(i);
+  res.style.display='block';
+  document.getElementById('form').style.display='none';
+
+  ['mediaSlider','piecesSlider','hoursSlider'].forEach(id=>{
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+  recalc();
+
+  document.getElementById('pdfInternal').addEventListener('click', function(){ doPrint('internal'); });
+  document.getElementById('pdfClient').addEventListener('click', function(){ doPrint('client'); });
+
+  document.getElementById('restartBtn').addEventListener('click', function(){
+    res.style.display='none'; res.innerHTML='';
+    document.getElementById('form').style.display='block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+</script>
+</body>
+</html>
