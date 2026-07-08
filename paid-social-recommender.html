@@ -127,6 +127,8 @@
     width:20px;height:20px;border-radius:50%;background:var(--blue);cursor:pointer;border:3px solid #fff;
   }
   .ctrl-val{font-family:Georgia,serif;font-weight:700;font-size:17px;color:var(--dark);min-width:88px;text-align:right;}
+  .mini-lab{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.04em;min-width:86px;flex:none;}
+  .slider-row + .slider-row{margin-top:9px;}
   .ctrl-hint{font-size:12.5px;color:var(--muted);margin-top:6px;}
   table.sum{width:100%;border-collapse:collapse;margin-top:6px;}
   table.sum td{padding:9px 0;border-top:1px solid var(--line);font-size:14.5px;vertical-align:top;}
@@ -140,11 +142,13 @@
   .split-head{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:9px;}
   .split-bar{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--line);}
   .split-bar .w{background:var(--green);}
+  .split-bar .c{background:var(--blue);}
   .split-bar .n{background:var(--yellow);}
   .split-legend{display:flex;justify-content:space-between;gap:12px;margin-top:9px;font-size:13px;}
   .split-legend .item{display:flex;align-items:center;gap:7px;color:var(--ink);}
   .split-legend .dot{width:10px;height:10px;border-radius:3px;flex:none;}
   .split-legend .dot.w{background:var(--green);}
+  .split-legend .dot.c{background:var(--blue);}
   .split-legend .dot.n{background:var(--yellow);}
   .split-legend b{font-family:Georgia,serif;}
   .cap-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
@@ -323,8 +327,17 @@ const PLATFORM_NAMES = {
 };
 const FLOORS = { meta:[1500,3000], tiktok:[2000,3000], youtube:[1500,3000], linkedin:[4000,5000] };
 const BUDGET_MAX = { under2k:2000, '2to5':5000, '5to10':10000, over10:20000, rec:null };
-const CONTENT_RATE = 150;       // $/hr content creation
-const MEDIA_MARKUP = 0.1765;    // markup on working media
+const RATE_STATIC = 450;        // per static / image / carousel piece
+const RATE_VIDEO  = 1500;       // per video build or edit
+/* Flat monthly management fee, banded by media spend. A band change takes
+   effect only after spend holds in the higher band for two consecutive months. */
+const FEE_BANDS = [
+  { max:4000,     fee:2000, label:'under $4K media' },
+  { max:8000,     fee:2500, label:'$4K–$8K media' },
+  { max:15000,    fee:3000, label:'$8K–$15K media' },
+  { max:Infinity, fee:3500, label:'$15K+ media' }
+];
+function feeBand(media){ return FEE_BANDS.find(b=>media<b.max); }
 
 const CAP_RANK = { pro:4, ugc:3, basic:2, little:1 };
 const CAP_LABEL = { pro:'Pro photo & video', ugc:'Creator / UGC access', basic:'Basic graphics', little:'Very little' };
@@ -560,43 +573,48 @@ let CALC = { months:3 };
 let LAST = null;   // last inputs, for the client-facing PDF render
 let REPORT = null; // context for syncing report figures to the sliders
 function currentMoney(){
-  const media  = +document.getElementById('mediaSlider').value;
-  const pieces = +document.getElementById('piecesSlider').value;
-  const hours  = +document.getElementById('hoursSlider').value;
-  const markup  = media * MEDIA_MARKUP;
-  const gross   = media + markup;
-  const fee     = pieces * hours * CONTENT_RATE;
-  const monthly = gross + fee;
+  const media   = +document.getElementById('mediaSlider').value;
+  const statics = +document.getElementById('staticsSlider').value;
+  const videos  = +document.getElementById('videosSlider').value;
+  const rateStatic = +document.getElementById('rateStaticSlider').value;
+  const rateVideo  = +document.getElementById('rateVideoSlider').value;
+  const band    = feeBand(media);
+  const mgmt    = band.fee;
+  const creative = statics*rateStatic + videos*rateVideo;
+  const pieces  = statics + videos;
+  const monthly = media + mgmt + creative;
   const program = monthly * CALC.months;
-  return { media, pieces, hours, markup, gross, fee, monthly, program };
+  return { media, statics, videos, rateStatic, rateVideo, pieces, band, mgmt, creative, monthly, program };
 }
 
 function recalc(){
   const m = currentMoney();
-  const media=m.media, pieces=m.pieces, hours=m.hours, markup=m.markup, fee=m.fee, monthly=m.monthly, program=m.program;
 
-  document.getElementById('mediaVal').textContent  = money(media);
-  document.getElementById('piecesVal').textContent = pieces;
-  document.getElementById('hoursVal').textContent  = hours.toFixed(1).replace('.0','')+' hr';
+  document.getElementById('mediaVal').textContent   = money(m.media);
+  document.getElementById('staticsVal').textContent = m.statics;
+  document.getElementById('videosVal').textContent  = m.videos;
+  document.getElementById('rateStaticVal').textContent = money(m.rateStatic);
+  document.getElementById('rateVideoVal').textContent  = money(m.rateVideo);
 
-  document.getElementById('sumMedia').textContent   = money(media);
-  document.getElementById('sumMarkup').textContent  = money(markup);
-  document.getElementById('sumPcs').textContent     = pieces;
-  document.getElementById('sumHrs').textContent     = hours.toFixed(1).replace('.0','');
-  document.getElementById('sumFee').textContent     = money(fee);
-  document.getElementById('sumMonthly').textContent = money(monthly);
-  document.getElementById('sumProgram').textContent = money(program);
+  document.getElementById('sumMedia').textContent   = money(m.media);
+  document.getElementById('sumMgmt').textContent    = money(m.mgmt);
+  document.getElementById('mgmtBand').textContent   = m.band.label;
+  document.getElementById('sumPcs').textContent     = m.statics+' static'+(m.statics===1?'':'s')+' × '+money(m.rateStatic)+' + '+m.videos+' video'+(m.videos===1?'':'s')+' × '+money(m.rateVideo);
+  document.getElementById('sumCreative').textContent= money(m.creative);
+  document.getElementById('sumMonthly').textContent = money(m.monthly);
+  document.getElementById('sumProgram').textContent = money(m.program);
 
-  // Working (media) vs non-working (markup + creative). Ratio holds monthly or full program.
-  const working = media;
-  const nonworking = markup + fee;
-  const denom = working + nonworking;
-  const pctW = denom>0 ? Math.round(working/denom*100) : 0;
-  const pctN = 100 - pctW;
-  document.getElementById('barW').style.width = pctW+'%';
-  document.getElementById('barN').style.width = pctN+'%';
-  document.getElementById('pctW').textContent = pctW+'%';
-  document.getElementById('pctN').textContent = pctN+'%';
+  // Three-way split: media / creative / management. Ratio holds monthly or full program.
+  const denom = m.monthly;
+  const pctM = denom>0 ? Math.round(m.media/denom*100) : 0;
+  const pctC = denom>0 ? Math.round(m.creative/denom*100) : 0;
+  const pctG = denom>0 ? Math.max(0, 100-pctM-pctC) : 0;
+  document.getElementById('barM').style.width = pctM+'%';
+  document.getElementById('barC').style.width = pctC+'%';
+  document.getElementById('barG').style.width = pctG+'%';
+  document.getElementById('pctM').textContent = pctM+'%';
+  document.getElementById('pctC').textContent = pctC+'%';
+  document.getElementById('pctG').textContent = pctG+'%';
 
   syncReport();
 }
@@ -616,9 +634,8 @@ function syncReport(){
 
   const cl = document.getElementById('creativeNeedList');
   if(cl){
-    const hrs = m.hours.toFixed(1).replace('.0','');
     cl.innerHTML =
-        '<li>This plan is built on <strong>'+m.pieces+' pieces per month</strong> produced by Creative Energy, at <strong>'+hrs+' hour'+(m.hours===1?'':'s')+' each</strong>.</li>'
+        '<li>This plan is built on <strong>'+m.pieces+' pieces per month</strong> produced by Creative Energy: '+m.statics+' static'+(m.statics===1?'':'s')+' / image'+(m.statics===1?'':'s')+' and '+m.videos+' video'+(m.videos===1?'':'s')+'.</li>'
       + '<li><strong>'+PLATFORM_NAMES[p]+'</strong> needs roughly '+need.low+' to '+need.top+' fresh variants per month to avoid fatigue, with '+need.active+' active at a time, refreshed '+need.refresh+'.</li>'
       + '<li>Watch weekly frequency. On cold audiences, performance slips above ~2.5 and falls off past 4.0.</li>';
   }
@@ -698,17 +715,17 @@ function buildClientRec(i){
 
   h += '<div class="sec"><h3>Timeline</h3><p style="margin:0;font-size:14.5px;">We recommend planning for a <strong>'+dur.monthsLabel+'</strong>. Paid social needs a short learning period at the start, and the results compound the longer we optimize. We will review performance with you along the way and adjust based on what the data tells us.</p></div>';
 
-  h += '<div class="sec"><h3>Creative</h3><p style="margin:0;font-size:14.5px;">To keep your ads fresh and avoid fatigue, this plan includes <strong>'+m.pieces+' new pieces of creative each month</strong>, produced by Creative Energy for you. To stay effective, '+PLATFORM_NAMES[primary].replace(' (Facebook & Instagram)','')+' typically needs '+need.low+' to '+need.top+' fresh pieces a month, and we will adjust if you are able to provide some of it.</p></div>';
+  h += '<div class="sec"><h3>Creative</h3><p style="margin:0;font-size:14.5px;">To keep your ads fresh and avoid fatigue, this plan includes <strong>'+m.pieces+' new pieces of creative each month</strong> ('+m.statics+' static'+(m.statics===1?'':'s')+' and '+m.videos+' video'+(m.videos===1?'':'s')+'), produced by Creative Energy for you. To stay effective, '+PLATFORM_NAMES[primary].replace(' (Facebook & Instagram)','')+' typically needs '+need.low+' to '+need.top+' fresh pieces a month, and we will adjust if you are able to provide some of it.</p></div>';
 
   // Investment (client labels, locked numbers, no sliders/split)
   h += '<div class="sec invest"><h3>Your investment</h3><table class="sum">'
      + '<tr><td>Working media (ad spend)</td><td>'+money(m.media)+' / mo</td></tr>'
-     + '<tr><td>Media management & optimization</td><td>'+money(m.markup)+' / mo</td></tr>'
-     + '<tr><td>Creative production ('+m.pieces+' pieces / month)</td><td>'+money(m.fee)+' / mo</td></tr>'
+     + '<tr><td>Media management & strategy (flat monthly fee)</td><td>'+money(m.mgmt)+' / mo</td></tr>'
+     + '<tr><td>Creative production ('+m.pieces+' pieces / month)</td><td>'+money(m.creative)+' / mo</td></tr>'
      + '<tr class="sum-total"><td>Monthly investment</td><td>'+money(m.monthly)+'</td></tr>'
      + '<tr class="sum-prog"><td>Full '+dur.monthsLabel+'</td><td>'+money(m.program)+'</td></tr>'
      + '</table>'
-     + '<div class="ctrl-hint" style="margin-top:12px;">Figures are an estimate to frame our planning together and may be refined as we scope the work.</div></div>';
+     + '<div class="ctrl-hint" style="margin-top:12px;">Your management fee is a flat monthly rate tied to your media spend level, and it only adjusts after spend holds in a higher band for two consecutive months, so a single strong month never raises your fee. Figures are an estimate to frame our planning together and may be refined as we scope the work.</div></div>';
 
   h += '<div class="cf-foot">Creative Energy · This recommendation is a starting point for our conversation. We will refine it together based on your goals and budget.</div>';
   return h;
@@ -787,34 +804,45 @@ function buildRec(i){
 
   REPORT = { primary:primary, need:need, floor:floor };
 
+  // Creative piece defaults: volume scales with spend (smaller budgets fatigue slower),
+  // video share scales with how video-native the lead platform is.
+  const fastPlat = (primary==='tiktok' || primary==='youtube');
+  const totalDefault = Math.min(14, Math.max(3, 2 + Math.round(mediaDefault/1500)));
+  const videoShare = fastPlat ? 0.5 : (primary==='meta' ? 0.25 : 0.15);
+  const videosDefault = Math.max(fastPlat?1:0, Math.round(totalDefault*videoShare));
+  const staticsDefault = totalDefault - videosDefault;
+
   // Investment estimate (interactive)
   html += '<div class="sec invest"><h3>Recommended investment</h3>';
   html += '<div class="ctrl"><label>Monthly working media</label>'
         + '<div class="slider-row"><input type="range" id="mediaSlider" min="500" max="20000" step="250" value="'+mediaDefault+'"><span class="ctrl-val" id="mediaVal"></span></div>'
-        + '<div class="ctrl-hint">Recommended floor for '+PLATFORM_NAMES[primary]+': '+money(floor[0])+' to '+money(floor[1])+'/mo.</div></div>';
+        + '<div class="ctrl-hint">Recommended floor for '+PLATFORM_NAMES[primary]+': '+money(floor[0])+' to '+money(floor[1])+'/mo. The management fee band updates automatically as you move this.</div></div>';
 
-  html += '<div class="ctrl"><label>Creative pieces per month Creative Energy produces</label>'
-        + '<div class="slider-row"><input type="range" id="piecesSlider" min="0" max="30" step="1" value="'+need.top+'"><span class="ctrl-val" id="piecesVal"></span></div>'
-        + '<div class="ctrl-hint">Defaults to the full monthly need ('+need.top+'). Lower it to reflect anything the client produces themselves. Add more if running a second platform.</div></div>';
+  html += '<div class="ctrl"><label>Statics & image variants</label>'
+        + '<div class="slider-row"><span class="mini-lab">Pieces / mo</span><input type="range" id="staticsSlider" min="0" max="20" step="1" value="'+staticsDefault+'"><span class="ctrl-val" id="staticsVal"></span></div>'
+        + '<div class="slider-row"><span class="mini-lab">Rate / piece</span><input type="range" id="rateStaticSlider" min="100" max="1500" step="25" value="'+RATE_STATIC+'"><span class="ctrl-val" id="rateStaticVal"></span></div>'
+        + '<div class="ctrl-hint">Static, image, and carousel pieces. Iterations and resizes of an existing concept count here. Adjust the rate for the situation: quick template variants run low, net-new design concepts run high.</div></div>';
 
-  html += '<div class="ctrl"><label>Hours per piece</label>'
-        + '<div class="slider-row"><input type="range" id="hoursSlider" min="0.5" max="6" step="0.5" value="1"><span class="ctrl-val" id="hoursVal"></span></div>'
-        + '<div class="ctrl-hint">Billed at '+money(CONTENT_RATE)+'/hr content rate. Most single ad variants run about an hour; bump it up for heavier video.</div></div>';
+  html += '<div class="ctrl"><label>Video builds</label>'
+        + '<div class="slider-row"><span class="mini-lab">Pieces / mo</span><input type="range" id="videosSlider" min="0" max="8" step="1" value="'+videosDefault+'"><span class="ctrl-val" id="videosVal"></span></div>'
+        + '<div class="slider-row"><span class="mini-lab">Rate / piece</span><input type="range" id="rateVideoSlider" min="250" max="5000" step="125" value="'+RATE_VIDEO+'"><span class="ctrl-val" id="rateVideoVal"></span></div>'
+        + '<div class="ctrl-hint">New video edits and motion builds. Cutdowns and light re-edits usually count as statics-level iterations. Adjust the rate for the situation: edits from supplied footage run low, original shoots or heavy motion run high.</div></div>';
 
   html += '<table class="sum">'
         + '<tr><td>Working media</td><td id="sumMedia"></td></tr>'
-        + '<tr><td>Agency media markup (17.65%)</td><td id="sumMarkup"></td></tr>'
-        + '<tr><td>Creative production (<span id="sumPcs"></span> pcs &times; <span id="sumHrs"></span> hr &times; '+money(CONTENT_RATE)+')</td><td id="sumFee"></td></tr>'
+        + '<tr><td>Media management & strategy (flat fee, <span id="mgmtBand"></span>)</td><td id="sumMgmt"></td></tr>'
+        + '<tr><td>Creative production (<span id="sumPcs"></span>)</td><td id="sumCreative"></td></tr>'
         + '<tr class="sum-total"><td>Monthly total investment</td><td id="sumMonthly"></td></tr>'
         + '<tr class="sum-prog"><td>Full '+dur.monthsLabel+'</td><td id="sumProgram"></td></tr>'
         + '</table>';
-  html += '<div class="split"><div class="split-head">Working vs. non-working dollars (full program)</div>'
-        + '<div class="split-bar"><div class="w" id="barW"></div><div class="n" id="barN"></div></div>'
+  html += '<div class="split"><div class="split-head">Where the dollars go (full program)</div>'
+        + '<div class="split-bar"><div class="w" id="barM"></div><div class="c" id="barC"></div><div class="n" id="barG"></div></div>'
         + '<div class="split-legend">'
-        + '<span class="item"><span class="dot w"></span>Working media <b id="pctW"></b></span>'
-        + '<span class="item"><span class="dot n"></span>Non-working (markup + creative) <b id="pctN"></b></span>'
+        + '<span class="item"><span class="dot w"></span>Working media <b id="pctM"></b></span>'
+        + '<span class="item"><span class="dot c"></span>Creative <b id="pctC"></b></span>'
+        + '<span class="item"><span class="dot n"></span>Management <b id="pctG"></b></span>'
         + '</div></div>';
-  html += '<div class="ctrl-hint" style="margin-top:12px;">Markup applies to working media only. The creative fee is the agency production cost. Figures are estimates to frame the conversation, not a final quote.</div>';
+  html += '<div class="ctrl-hint" style="margin-top:12px;">Management fee bands: '+FEE_BANDS.map(b=>money(b.fee)+' '+b.label).join(' · ')+'. A tier change takes effect at the start of the month following two consecutive months of media spend within the higher band. Creative is priced per piece, not hourly. Figures are estimates to frame the conversation, not a final quote.</div>';
   html += '</div>';
 
   // Watch-outs
@@ -870,7 +898,7 @@ document.getElementById('goBtn').addEventListener('click', function(){
   res.style.display='block';
   document.getElementById('form').style.display='none';
 
-  ['mediaSlider','piecesSlider','hoursSlider'].forEach(id=>{
+  ['mediaSlider','staticsSlider','videosSlider','rateStaticSlider','rateVideoSlider'].forEach(id=>{
     document.getElementById(id).addEventListener('input', recalc);
   });
   recalc();
